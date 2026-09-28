@@ -18,3 +18,10 @@ Or use the Supabase CLI: `supabase db push`.
 
 The app needs only `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
 Never put the `service_role` key in the app or in Git.
+
+## Connect the app
+
+Copy `.env.example` to `.env` locally, or set the same two variables in EAS (expo.dev → Project → Environment variables) for builds.
+Until both variables are set, the app stays in honest demo mode: SMS sign-in is shown as not connected.
+
+Enable phone sign-in in Supabase: Authentication → Providers → Phone. It needs an SMS provider such as Twilio.

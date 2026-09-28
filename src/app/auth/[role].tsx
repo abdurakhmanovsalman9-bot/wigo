@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Text } from 'react-native';
 import { Card, Page, PrimaryButton, SecondaryButton, colors } from '../../components/ui';
 import { useSession } from '../../context/session';
+import { isBackendConfigured } from '../../services/supabase';
 
 export default function Auth() {
   const { role } = useLocalSearchParams<{ role: 'user' | 'organizer' }>();
@@ -15,7 +16,9 @@ export default function Auth() {
     <Card title="Посмотреть приложение" text="Откройте полноценный демонстрационный профиль без SMS, Apple ID или Google-аккаунта." />
     <PrimaryButton label={organizer ? 'Открыть демо организатора' : 'Открыть демо-версию'} onPress={openDemo} />
     <SecondaryButton label={organizer ? 'Знакомство с ролью (демо)' : 'Пройти знакомство (демо)'} onPress={() => { setRole(organizer ? 'organizer' : 'user'); router.push(organizer ? '/onboarding/organizer-video' : '/onboarding/social-dna'); }} />
-    <SecondaryButton label="SMS-вход — скоро" onPress={() => router.push({ pathname: '/auth/integration', params: { provider: 'sms' } })} />
+    {isBackendConfigured
+      ? <SecondaryButton label="Войти по номеру телефона" onPress={() => { setRole(organizer ? 'organizer' : 'user'); router.push('/auth/phone'); }} />
+      : <SecondaryButton label="SMS-вход — скоро" onPress={() => router.push({ pathname: '/auth/integration', params: { provider: 'sms' } })} />}
     <SecondaryButton label="Вход через Apple — скоро" onPress={() => router.push({ pathname: '/auth/integration', params: { provider: 'apple' } })}/>
     <SecondaryButton label="Вход через Google — скоро" onPress={() => router.push({ pathname: '/auth/integration', params: { provider: 'google' } })}/>
     <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 19, textAlign: 'center' }}>Продолжая, вы соглашаетесь с правилами Wigo и политикой приватности.</Text>
