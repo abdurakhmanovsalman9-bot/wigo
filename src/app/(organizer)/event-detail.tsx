@@ -13,7 +13,7 @@ export default function EventDetail() {
   return <Page title={event.title} subtitle={`${event.when} · ${event.seats} мест · ${event.format}`}>
     <Card title={published ? (userId ? 'Опубликовано' : 'Опубликовано в демо') : 'Черновик'} text={published ? 'Адрес показывается только после подтверждения участия.' : 'Событие пока не видно участникам.'} action={published ? undefined : 'Опубликовать'} onPress={published ? undefined : () => { saveEvent({ ...event, status: 'published' }).catch(() => Alert.alert('Не удалось опубликовать', 'Проверьте интернет и попробуйте ещё раз.')); }} />
     <Card title="Заявки" text={pending ? `Ожидают ответа: ${pending}` : 'Новых заявок нет'} action="Открыть участников" onPress={() => router.push('/(organizer)/participants')} />
-    <Card title="Сообщения" text="Участники уточняют детали в групповом чате." action="Открыть чат" onPress={() => router.push('/(organizer)/messages')} />
+    <Card title="Сообщения" text="Участники уточняют детали в групповом чате." action="Открыть чат" onPress={() => userId ? router.push({ pathname: '/chat/[eventId]', params: { eventId: event.id } }) : router.push('/(organizer)/messages')} />
     <PrimaryButton label="Изменить событие" onPress={() => router.push({ pathname: '/(organizer)/create-event', params: { id: event.id } })} />
     <SecondaryButton label="К списку событий" onPress={() => router.replace('/(organizer)/events')} />
   </Page>;

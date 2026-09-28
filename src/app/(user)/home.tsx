@@ -5,9 +5,12 @@ import { Card, Note, Page, PrimaryButton, SecondaryButton, colors } from '../../
 import { socialDnaSummary } from '../../domain/socialDna';
 import { useSession } from '../../context/session';
 import { askConcierge, ConciergeRecommendation } from '../../services/ai';
+import { useRemote } from '../../hooks/useRemote';
+import { fetchPublishedEvents } from '../../services/backend';
 
 export default function Home() {
-  const { dna } = useSession();
+  const { dna, userId } = useSession();
+  const upcoming = useRemote(userId ? `published-${userId}` : null, () => fetchPublishedEvents(userId as string));
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ConciergeRecommendation[] | null>(null);
   const search = async () => setResults(await askConcierge({ intent: query.trim(), city: 'Алматы', socialDna: dna }));
@@ -20,8 +23,13 @@ export default function Home() {
     </> : null}
     <SecondaryButton label="Свободен сейчас" onPress={() => router.push('/(user)/now')} />
     <Text style={styles.section}>Для вас</Text>
-    <Card title="Падел сегодня" text="19:30 · Медеу · 2 места" action="Подробнее" onPress={() => router.push('/(user)/plans')} />
-    <Card title="Кофе и книги" text="Завтра · 3 человека · бесплатно" action="Открыть чат" onPress={() => router.push('/(user)/chats')} />
+    {userId ? <>
+      {upcoming.data?.slice(0, 3).map((event) => <Card key={event.id} title={event.title} text={`${event.when} · ${event.format}`} action="Подробнее" onPress={() => router.push({ pathname: '/(user)/event', params: { id: event.id } })} />)}
+      {upcoming.data?.length === 0 ? <Note>Открытых событий пока нет.</Note> : null}
+    </> : <>
+      <Card title="Падел сегодня" text="19:30 · Медеу · 2 места" action="Подробнее" onPress={() => router.push('/(user)/plans')} />
+      <Card title="Кофе и книги" text="Завтра · 3 человека · бесплатно" action="Открыть чат" onPress={() => router.push('/(user)/chats')} />
+    </>}
     <MobileTabs active="Главная" />
   </Page>;
 }

@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Note, Page, PrimaryButton, SecondaryButton, colors } from '../../components/ui';
 import { useSession } from '../../context/session';
+import { useRemote } from '../../hooks/useRemote';
+import { fetchAddress, saveAddress } from '../../services/backend';
 
 const formats = ['Спорт', 'Кофе и общение', 'Прогулка', 'Творчество'];
 const times = ['Сегодня · 19:30', 'Суббота · 19:30', 'Воскресенье · 11:00'];
@@ -16,9 +18,16 @@ export default function CreateEvent() {
   const [when, setWhen] = useState(existing?.when ?? times[1]);
   const [seats, setSeats] = useState(existing?.seats ?? 4);
   const [saving, setSaving] = useState(false);
+  const [address, setAddress] = useState<string | null>(null);
+  const savedAddress = useRemote(userId && existing ? `address-${existing.id}` : null, () => fetchAddress(existing?.id as string));
+  const addressValue = address ?? savedAddress.data ?? '';
   const save = async (status: 'draft' | 'published') => {
     setSaving(true);
-    try { return await saveEvent({ id: existing?.id, title: title.trim(), format, when, seats, status }); }
+    try {
+      const eventId = await saveEvent({ id: existing?.id, title: title.trim(), format, when, seats, status });
+      if (userId && address !== null) await saveAddress(eventId, address.trim());
+      return eventId;
+    }
     catch { Alert.alert('Не удалось сохранить', 'Проверьте интернет и попробуйте ещё раз.'); return null; }
     finally { setSaving(false); }
   };
@@ -31,6 +40,7 @@ export default function CreateEvent() {
       <Text style={styles.seats}>{seats}</Text>
       <Pressable accessibilityLabel="Больше мест" onPress={() => setSeats(Math.min(30, seats + 1))} style={styles.step}><Text style={styles.stepText}>+</Text></Pressable>
     </View>
+    {userId ? <><Text style={styles.label}>Адрес</Text><TextInput value={addressValue} onChangeText={setAddress} style={styles.input} placeholder="Увидят только подтверждённые участники" maxLength={200} /></> : null}
     <PrimaryButton label={userId ? 'Опубликовать' : 'Опубликовать в демо'} disabled={!title.trim() || saving} onPress={async () => { const id = await save('published'); if (id) router.replace({ pathname: '/(organizer)/event-detail', params: { id } }); }} />
     <SecondaryButton label="Сохранить черновик" onPress={async () => { if (title.trim() && !(await save('draft'))) return; router.replace('/(organizer)/events'); }} />
     <SecondaryButton label="Отмена" onPress={() => router.back()} />
