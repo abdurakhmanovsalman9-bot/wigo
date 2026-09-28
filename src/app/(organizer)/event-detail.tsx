@@ -1,12 +1,20 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Alert } from 'react-native';
 import { Card, Page, PrimaryButton, SecondaryButton } from '../../components/ui';
+import { useSession } from '../../context/session';
 
 export default function EventDetail() {
-  return <Page title="Падел в субботу" subtitle="Суббота · 19:30 · Медеу · 4 места">
-    <Card title="Публикация" text="Событие видно подходящим участникам. Адрес показывается только после подтверждения участия." />
-    <Card title="Заявки" text="4 новых заявки · 1 место ожидает ответа" action="Открыть участников" onPress={() => router.push('/(organizer)/participants')} />
-    <Card title="Сообщения" text="Участники могут уточнять детали в групповом чате." action="Открыть чат" onPress={() => router.push('/(organizer)/messages')} />
-    <PrimaryButton label="Изменить событие" onPress={() => router.push('/(organizer)/create-event')} />
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { events, participants, saveEvent, userId } = useSession();
+  const event = events.find((item) => item.id === id) ?? events[0];
+  const pending = participants.filter((item) => item.status === 'pending').length;
+  if (!event) return <Page title="Событие не найдено" subtitle="Создайте новое событие."><PrimaryButton label="Создать событие" onPress={() => router.replace('/(organizer)/create-event')} /></Page>;
+  const published = event.status === 'published';
+  return <Page title={event.title} subtitle={`${event.when} · ${event.seats} мест · ${event.format}`}>
+    <Card title={published ? (userId ? 'Опубликовано' : 'Опубликовано в демо') : 'Черновик'} text={published ? 'Адрес показывается только после подтверждения участия.' : 'Событие пока не видно участникам.'} action={published ? undefined : 'Опубликовать'} onPress={published ? undefined : () => { saveEvent({ ...event, status: 'published' }).catch(() => Alert.alert('Не удалось опубликовать', 'Проверьте интернет и попробуйте ещё раз.')); }} />
+    <Card title="Заявки" text={pending ? `Ожидают ответа: ${pending}` : 'Новых заявок нет'} action="Открыть участников" onPress={() => router.push('/(organizer)/participants')} />
+    <Card title="Сообщения" text="Участники уточняют детали в групповом чате." action="Открыть чат" onPress={() => router.push('/(organizer)/messages')} />
+    <PrimaryButton label="Изменить событие" onPress={() => router.push({ pathname: '/(organizer)/create-event', params: { id: event.id } })} />
     <SecondaryButton label="К списку событий" onPress={() => router.replace('/(organizer)/events')} />
   </Page>;
 }

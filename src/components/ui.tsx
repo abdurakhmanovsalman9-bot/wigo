@@ -27,7 +27,12 @@ export function Card({ title, text, action, onPress }: { title: string; text: st
   return <View style={styles.card}><Text style={styles.cardTitle}>{title}</Text><Text style={styles.cardText}>{text}</Text>{action && onPress ? <Pressable onPress={onPress}><Text style={styles.link}>{action}</Text></Pressable> : null}</View>;
 }
 
+export function Note({ children }: { children: ReactNode }) {
+  return <Text style={styles.note}>{children}</Text>;
+}
+
 const styles = StyleSheet.create({
+  note: { color: colors.muted, fontSize: 13, lineHeight: 19, textAlign: 'center' },
   safe: { flex: 1, backgroundColor: colors.canvas }, page: { flexGrow: 1, padding: 24, paddingBottom: 38 },
   brand: { color: colors.violet, fontSize: 18, fontWeight: '800', marginBottom: 34 }, step: { color: colors.violet, fontSize: 14, fontWeight: '800', marginBottom: 34 },
   title: { color: colors.text, fontSize: 31, fontWeight: '800', letterSpacing: -0.8 }, subtitle: { color: colors.muted, fontSize: 16, lineHeight: 23, marginTop: 10 }, content: { gap: 14, marginTop: 30 },

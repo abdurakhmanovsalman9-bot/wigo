@@ -11,7 +11,7 @@ const questions: Question[] = [
   { key: 'familiarity', title: 'С кем встречаться?', subtitle: 'Вы сами выбираете круг общения.', choices: [{ label: 'Только друзья', value: 'friends' }, { label: 'Друзья друзей', value: 'friendsOfFriends' }, { label: 'Новые люди', value: 'newPeople' }] },
   { key: 'activityStyle', title: 'Какой формат ближе?', subtitle: 'Выберите то, что подходит сейчас.', choices: [{ label: 'Активный', value: 'active' }, { label: 'Спокойный', value: 'calm' }] },
   { key: 'planningStyle', title: 'Как планируете?', subtitle: 'Это влияет только на порядок рекомендаций.', choices: [{ label: 'Могу собраться сейчас', value: 'now' }, { label: 'Планирую заранее', value: 'planned' }] },
-  { key: 'budget', title: 'Комфортный бюджет встречи?', subtitle: 'Это не доход. Видно только вам.', choices: [{ label: 'Бесплатно', value: 'free' }, { label: 'До 5 000 ₸', value: 'under5' }, { label: '5 000–10 000 ₸', value: '5to10' }, { label: '10 000–20 000 ₸', value: '10to20' }, { label: 'Зависит от активности', value: 'flexible' }] },
+  { key: 'budget', title: 'Комфортный бюджет встречи?', subtitle: 'Это не доход. Видно только вам.', choices: [{ label: 'Бесплатно', value: 'free' }, { label: 'До 5 000 ₸', value: 'under5' }, { label: '5 000–10 000 ₸', value: '5to10' }, { label: '10 000–20 000 ₸', value: '10to20' }, { label: 'Более 20 000 ₸', value: 'over20' }, { label: 'Зависит от активности', value: 'flexible' }] },
 ];
 
 export default function Quiz() {
