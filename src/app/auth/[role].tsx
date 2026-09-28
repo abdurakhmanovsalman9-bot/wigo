@@ -14,6 +14,7 @@ export default function Auth() {
   return <Page title={organizer ? 'Вход организатора' : 'Вход в Wigo'} subtitle={organizer ? 'Создавайте открытые события в приложении.' : 'От идей — к реальным встречам.'}>
     <Card title="Посмотреть приложение" text="Откройте полноценный демонстрационный профиль без SMS, Apple ID или Google-аккаунта." />
     <PrimaryButton label={organizer ? 'Открыть демо организатора' : 'Открыть демо-версию'} onPress={openDemo} />
+    <SecondaryButton label={organizer ? 'Знакомство с ролью (демо)' : 'Пройти знакомство (демо)'} onPress={() => { setRole(organizer ? 'organizer' : 'user'); router.push(organizer ? '/onboarding/organizer-video' : '/onboarding/social-dna'); }} />
     <SecondaryButton label="SMS-вход — скоро" onPress={() => router.push({ pathname: '/auth/integration', params: { provider: 'sms' } })} />
     <SecondaryButton label="Вход через Apple — скоро" onPress={() => router.push({ pathname: '/auth/integration', params: { provider: 'apple' } })}/>
     <SecondaryButton label="Вход через Google — скоро" onPress={() => router.push({ pathname: '/auth/integration', params: { provider: 'google' } })}/>

@@ -1,15 +1,15 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput } from 'react-native';
-import { Page, PrimaryButton, colors } from '../../components/ui';
+import { Card, Note, Page, PrimaryButton, SecondaryButton } from '../../components/ui';
 import { useSession } from '../../context/session';
 
+// SMS codes are not sent yet, so this screen must not accept a code or pretend to verify one.
 export default function Code() {
-  const [code, setCode] = useState(''); const { role } = useSession();
-  return <Page title="Введите код" subtitle="Мы отправили SMS с кодом подтверждения.">
-    <TextInput value={code} onChangeText={setCode} placeholder="0000" maxLength={4} keyboardType="number-pad" style={styles.code}/>
-    <PrimaryButton label="Подтвердить" disabled={code.length !== 4} onPress={() => router.replace(role === 'organizer' ? '/onboarding/organizer-video' : '/onboarding/social-dna')}/>
-    <Pressable onPress={() => router.push({ pathname: '/auth/integration', params: { provider: 'sms' } })}><Text style={styles.link}>Не пришёл код?</Text></Pressable>
+  const { role } = useSession();
+  const organizer = role === 'organizer';
+  return <Page title="Код из SMS" subtitle="SMS-вход пока не подключён.">
+    <Card title="Коды не отправляются" text="Подтверждение номера заработает после подключения SMS-провайдера и серверной проверки в Wigo." />
+    <PrimaryButton label="Открыть демо без входа" onPress={() => router.replace(organizer ? '/(organizer)/home' : '/(user)/home')} />
+    <SecondaryButton label="Подробнее об интеграции" onPress={() => router.push({ pathname: '/auth/integration', params: { provider: 'sms' } })} />
+    <Note>Мы не имитируем проверку кода.</Note>
   </Page>;
 }
-const styles = StyleSheet.create({ code: { backgroundColor: colors.white, borderColor: colors.border, borderRadius: 15, borderWidth: 1, color: colors.text, fontSize: 28, fontWeight: '800', letterSpacing: 13, minHeight: 70, paddingHorizontal: 24, textAlign: 'center' }, link: { color: colors.violet, fontSize: 14, fontWeight: '800', textAlign: 'center' } });
