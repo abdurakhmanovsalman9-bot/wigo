@@ -1,0 +1,3 @@
+import { router } from 'expo-router';
+import { Card, Page, PrimaryButton } from '../../components/ui'; import { OrganizerTabs } from './home';
+export default function OrganizerEvents() { return <Page title="События" subtitle="Черновики, активные и завершённые."><Card title="Падел в субботу" text="3 свободных места · есть новые заявки" action="Управлять" onPress={() => router.push('/(organizer)/event-detail')}/><Card title="Прогулка у Медеу" text="Черновик · ещё не опубликован" action="Продолжить" onPress={() => router.push('/(organizer)/create-event')}/><PrimaryButton label="Создать событие" onPress={() => router.push('/(organizer)/create-event')}/><OrganizerTabs active="События"/></Page>; }

@@ -1,0 +1,3 @@
+import { router } from 'expo-router';
+import { Card, Page, PrimaryButton } from '../../components/ui'; import { OrganizerTabs } from './home';
+export default function OrganizerProfile() { return <Page title="Профиль организатора" subtitle="Управление публичной информацией и безопасностью."><Card title="Проверка профиля" text="Подтверждение личности будет подключаться через выбранного KYC-провайдера. До этого статус не показывается как проверенный."/><Card title="Уведомления" text="Новые заявки, изменения событий и сообщения." action="Настроить" onPress={() => router.push('/(user)/privacy')}/><PrimaryButton label="Редактировать события" onPress={() => router.push('/(organizer)/events')}/><OrganizerTabs active="Профиль"/></Page>; }

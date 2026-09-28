@@ -1,0 +1,3 @@
+import { router } from 'expo-router';
+import { Card, Page, PrimaryButton } from '../../components/ui'; import { MobileTabs } from './home';
+export default function Explore() { return <Page title="Обзор" subtitle="Люди, события, сообщества и места."><Card title="Люди рядом" text="Подобраны по выбранному формату встреч" action="Открыть Whisper" onPress={() => router.push('/(user)/whisper')}/><Card title="Открытые события" text="Сегодня и на выходных" action="Смотреть план" onPress={() => router.push('/(user)/plans')}/><PrimaryButton label="Фильтры" onPress={() => router.push('/(user)/privacy')}/><MobileTabs active="Обзор"/></Page>; }

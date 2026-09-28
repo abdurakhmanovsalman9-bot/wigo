@@ -1,0 +1,22 @@
+import { router, useLocalSearchParams } from 'expo-router';
+import { Text } from 'react-native';
+import { Card, Page, PrimaryButton, SecondaryButton, colors } from '../../components/ui';
+import { useSession } from '../../context/session';
+
+export default function Auth() {
+  const { role } = useLocalSearchParams<{ role: 'user' | 'organizer' }>();
+  const { setRole } = useSession();
+  const organizer = role === 'organizer';
+  const openDemo = () => {
+    setRole(organizer ? 'organizer' : 'user');
+    router.replace(organizer ? '/(organizer)/home' : '/(user)/home');
+  };
+  return <Page title={organizer ? 'Вход организатора' : 'Вход в Wigo'} subtitle={organizer ? 'Создавайте открытые события в приложении.' : 'От идей — к реальным встречам.'}>
+    <Card title="Посмотреть приложение" text="Откройте полноценный демонстрационный профиль без SMS, Apple ID или Google-аккаунта." />
+    <PrimaryButton label={organizer ? 'Открыть демо организатора' : 'Открыть демо-версию'} onPress={openDemo} />
+    <SecondaryButton label="SMS-вход — скоро" onPress={() => router.push({ pathname: '/auth/integration', params: { provider: 'sms' } })} />
+    <SecondaryButton label="Вход через Apple — скоро" onPress={() => router.push({ pathname: '/auth/integration', params: { provider: 'apple' } })}/>
+    <SecondaryButton label="Вход через Google — скоро" onPress={() => router.push({ pathname: '/auth/integration', params: { provider: 'google' } })}/>
+    <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 19, textAlign: 'center' }}>Продолжая, вы соглашаетесь с правилами Wigo и политикой приватности.</Text>
+  </Page>;
+}
