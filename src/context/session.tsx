@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { SocialDna } from '../domain/socialDna';
 import { DemoEvent, DemoPlan, initialEvents, initialParticipants, initialPlans, Participant, ParticipantStatus } from '../domain/demo';
 import { fetchMyEvents, fetchParticipants, fetchSettings, saveSettings, updateParticipantStatus, upsertEvent } from '../services/backend';
@@ -10,6 +10,8 @@ type Session = {
   role: Role; setRole: (role: Role) => void; dna: SocialDna; setDna: (dna: SocialDna) => void; privacy: PrivacyPreferences; setPrivacy: (privacy: PrivacyPreferences) => void;
   /** Supabase user id when signed in; null means the in-memory demo is used. */
   userId: string | null; signOut: () => Promise<void>;
+  /** Reloads the organizer's events and requests from the server (no-op in demo mode). */
+  refreshOrganizerData: () => Promise<void>;
   persistSettings: (dna: SocialDna, privacy: PrivacyPreferences) => Promise<void>;
   plans: DemoPlan[]; addPlan: (plan: Omit<DemoPlan, 'id'>) => void;
   events: DemoEvent[]; saveEvent: (event: Omit<DemoEvent, 'id'> & { id?: string }) => Promise<string>;
@@ -57,6 +59,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return () => { active = false; };
   }, [userId]);
 
+  const refreshOrganizerData = useCallback(async () => {
+    if (!userId) return;
+    const [myEvents, myParticipants] = await Promise.all([fetchMyEvents(userId), fetchParticipants(userId)]);
+    setEvents(myEvents); setParticipants(myParticipants);
+  }, [userId]);
+
   const addPlan = (plan: Omit<DemoPlan, 'id'>) => setPlans((current) => [{ ...plan, id: `plan-${Date.now()}` }, ...current]);
   const saveEvent = async ({ id, ...event }: Omit<DemoEvent, 'id'> & { id?: string }) => {
     const saved = userId ? await upsertEvent(userId, { ...event, id }) : { ...event, id: id ?? `event-${Date.now()}` };
@@ -84,7 +92,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     resetDemo();
   };
 
-  return <SessionContext.Provider value={{ role, setRole, dna, setDna, privacy, setPrivacy, userId, signOut, persistSettings, plans, addPlan, events, saveEvent, participants, setParticipantStatus, userMessages, addUserMessage, organizerMessages, addOrganizerMessage, resetDemo }}>{children}</SessionContext.Provider>;
+  return <SessionContext.Provider value={{ role, setRole, dna, setDna, privacy, setPrivacy, userId, signOut, refreshOrganizerData, persistSettings, plans, addPlan, events, saveEvent, participants, setParticipantStatus, userMessages, addUserMessage, organizerMessages, addOrganizerMessage, resetDemo }}>{children}</SessionContext.Provider>;
 }
 
 export function useSession() {

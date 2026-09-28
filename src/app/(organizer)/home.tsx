@@ -1,9 +1,11 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Card, Page, PrimaryButton, colors } from '../../components/ui';
 import { useSession } from '../../context/session';
 export default function OrganizerHome() {
-  const { events, participants } = useSession();
+  const { events, participants, refreshOrganizerData } = useSession();
+  useFocusEffect(useCallback(() => { refreshOrganizerData().catch(() => undefined); }, [refreshOrganizerData]));
   const published = events.filter((item) => item.status === 'published');
   const next = published[0];
   return <Page title="Организатор" subtitle="Управляйте открытыми событиями в Wigo.">

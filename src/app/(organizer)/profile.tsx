@@ -7,7 +7,7 @@ export default function OrganizerProfile() {
     <Card title="Проверка профиля — не подключена" text="Подтверждение личности будет через выбранного KYC-провайдера. До этого профиль не отмечается как проверенный."/>
     <View style={styles.row}><View style={styles.copy}><Text style={styles.title}>Уведомления</Text><Text style={styles.text}>Новые заявки, изменения событий и сообщения. Push пока не подключены.</Text></View><Switch value={privacy.planAlerts} onValueChange={(value) => setPrivacy({ ...privacy, planAlerts: value })} trackColor={{ true: colors.violet }}/></View>
     <PrimaryButton label="Мои события" onPress={() => router.replace('/(organizer)/events')}/>
-    <SecondaryButton label="Перейти в демо пользователя" onPress={() => { setRole('user'); router.replace('/(user)/home'); }}/>
+    <SecondaryButton label={userId ? 'Режим пользователя' : 'Перейти в демо пользователя'} onPress={() => { setRole('user'); router.replace('/(user)/home'); }}/>
     {userId
       ? <SecondaryButton label="Выйти из аккаунта" onPress={() => { signOut().finally(() => router.replace('/')); }}/>
       : <SecondaryButton label="Выйти из демо" onPress={() => { resetDemo(); router.replace('/'); }}/>}
