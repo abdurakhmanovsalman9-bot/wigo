@@ -25,3 +25,10 @@ Copy `.env.example` to `.env` locally, or set the same two variables in EAS (exp
 Until both variables are set, the app stays in honest demo mode: SMS sign-in is shown as not connected.
 
 Enable phone sign-in in Supabase: Authentication → Providers → Phone. It needs an SMS provider such as Twilio.
+
+## Sign in with Apple (iOS)
+
+1. Apple Developer → Identifiers → `app.wigo.mobile` → enable **Sign In with Apple**. EAS usually syncs this capability automatically during the build.
+2. Supabase → Authentication → Providers → Apple → enable, and set **Client IDs** to `app.wigo.mobile`. Native iOS sign-in does not need the Apple secret key.
+
+The button appears only on iOS when Supabase is configured. Otherwise the app shows the honest "coming soon" screen.
