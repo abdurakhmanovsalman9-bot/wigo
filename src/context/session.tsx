@@ -78,8 +78,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setParticipants((current) => current.map((item) => item.id === id ? { ...item, status } : item));
   };
   const persistSettings = async (nextDna: SocialDna, nextPrivacy: PrivacyPreferences) => {
-    setDna(nextDna); setPrivacy(nextPrivacy);
     if (userId) await saveSettings(userId, nextDna, nextPrivacy);
+    setDna(nextDna); setPrivacy(nextPrivacy);
   };
   const addUserMessage = (text: string) => setUserMessages((current) => [...current, text]);
   const addOrganizerMessage = (text: string) => setOrganizerMessages((current) => [...current, text]);

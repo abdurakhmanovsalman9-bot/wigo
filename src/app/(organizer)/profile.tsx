@@ -2,9 +2,10 @@ import { router } from 'expo-router';
 import { StyleSheet, Switch, Text, View } from 'react-native';
 import { Card, Page, PrimaryButton, SecondaryButton, colors } from '../../components/ui'; import { useSession } from '../../context/session'; import { OrganizerTabs } from './home';
 export default function OrganizerProfile() {
-  const { privacy, setPrivacy, setRole, resetDemo, userId, signOut } = useSession();
+  const { dna, privacy, setPrivacy, setRole, resetDemo, userId, signOut } = useSession();
   return <Page title="Профиль организатора" subtitle="Управление публичной информацией и безопасностью.">
     <Card title="Проверка профиля — не подключена" text="Подтверждение личности будет через выбранного KYC-провайдера. До этого профиль не отмечается как проверенный."/>
+    <Card title="Моя социальная ДНК" text="Помогает подбирать события и компанию по твоим ответам." action={dna.version === 2 ? 'Посмотреть' : 'Пройти тест'} onPress={() => router.push(dna.version === 2 ? '/onboarding/dna-result' : '/onboarding/social-dna')}/>
     <View style={styles.row}><View style={styles.copy}><Text style={styles.title}>Уведомления</Text><Text style={styles.text}>Новые заявки, изменения событий и сообщения. Push пока не подключены.</Text></View><Switch value={privacy.planAlerts} onValueChange={(value) => setPrivacy({ ...privacy, planAlerts: value })} trackColor={{ true: colors.violet }}/></View>
     <PrimaryButton label="Мои события" onPress={() => router.replace('/(organizer)/events')}/>
     <SecondaryButton label={userId ? 'Режим пользователя' : 'Перейти в демо пользователя'} onPress={() => { setRole('user'); router.replace('/(user)/home'); }}/>

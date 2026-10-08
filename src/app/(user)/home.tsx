@@ -2,11 +2,14 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { Card, Note, Page, PrimaryButton, SecondaryButton, colors } from '../../components/ui';
+import { initialEvents } from '../../domain/demo';
+import { ageMode } from '../../domain/eventSafety';
 import { socialDnaSummary } from '../../domain/socialDna';
 import { useSession } from '../../context/session';
 import { askConcierge, ConciergeRecommendation } from '../../services/ai';
 import { useRemote } from '../../hooks/useRemote';
 import { fetchPublishedEvents } from '../../services/backend';
+import { eventDnaFit, rankEventsForDna } from '../../domain/dnaRecommendations';
 
 export default function Home() {
   const { dna, userId } = useSession();
@@ -23,12 +26,13 @@ export default function Home() {
     </> : null}
     <SecondaryButton label="Свободен сейчас" onPress={() => router.push('/(user)/now')} />
     <Text style={styles.section}>Для вас</Text>
+    {ageMode(dna) !== 'adult' ? <Note>Показываем только события 16+ без алкоголя в публичных местах. Для остальных событий нужны известные возрастные условия.</Note> : null}
     {userId ? <>
-      {upcoming.data?.slice(0, 3).map((event) => <Card key={event.id} title={event.title} text={`${event.when} · ${event.format}`} action="Подробнее" onPress={() => router.push({ pathname: '/(user)/event', params: { id: event.id } })} />)}
-      {upcoming.data?.length === 0 ? <Note>Открытых событий пока нет.</Note> : null}
+      {rankEventsForDna(upcoming.data ?? [], dna).slice(0, 3).map((event) => <Card key={event.id} title={event.title} text={`${event.when} · ${event.format} · ${eventDnaFit(event, dna).reason}`} action="Подробнее" onPress={() => router.push({ pathname: '/(user)/event', params: { id: event.id } })} />)}
+      {upcoming.data && rankEventsForDna(upcoming.data, dna).length === 0 ? <Note>Подходящих открытых событий пока нет.</Note> : null}
     </> : <>
-      <Card title="Падел сегодня" text="19:30 · Медеу · 2 места" action="Подробнее" onPress={() => router.push('/(user)/plans')} />
-      <Card title="Кофе и книги" text="Завтра · 3 человека · бесплатно" action="Открыть чат" onPress={() => router.push('/(user)/chats')} />
+      {rankEventsForDna(initialEvents.filter((event) => event.status === 'published'), dna).map((event) => <Card key={event.id} title={event.title} text={event.when + ' · ' + eventDnaFit(event, dna).reason} action="Подробнее" onPress={() => router.push('/(user)/plans')} />)}
+      <Note>Это демонстрационные события.</Note>
     </>}
     <MobileTabs active="Главная" />
   </Page>;

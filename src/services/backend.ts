@@ -4,7 +4,8 @@ import { SocialDna } from '../domain/socialDna';
 import { supabase } from './supabase';
 
 type PrivacySettings = { whispers: 'verified' | 'friends'; planAlerts: boolean; approximateLocation: boolean };
-type EventRow = { id: string; title: string; format: string; starts_at: string | null; seats: number; status: 'draft' | 'published' | 'cancelled' };
+type EventRow = { id: string; title: string; format: string; starts_at: string | null; seats: number; status: 'draft' | 'published' | 'cancelled'; age_rating: '16+' | '18+' | 'unknown'; alcohol_policy: 'none' | 'present' | 'unknown'; venue_type: 'public' | 'private' | 'unknown' };
+const eventColumns = 'id, title, format, starts_at, seats, status, age_rating, alcohol_policy, venue_type';
 type ParticipantRow = { event_id: string; user_id: string; status: ParticipantStatus; events: { title: string } | null; profiles: { display_name: string } | null };
 
 function client() {
@@ -15,19 +16,20 @@ function client() {
 const toEvent = (row: EventRow): DemoEvent => ({
   id: row.id, title: row.title, format: row.format, when: dateToLabel(row.starts_at), seats: row.seats,
   status: row.status === 'published' ? 'published' : 'draft',
+  ageRating: row.age_rating, alcoholPolicy: row.alcohol_policy, venueType: row.venue_type,
 });
 
 export async function fetchMyEvents(userId: string): Promise<DemoEvent[]> {
-  const { data, error } = await client().from('events').select('id, title, format, starts_at, seats, status')
+  const { data, error } = await client().from('events').select(eventColumns)
     .eq('organizer_id', userId).neq('status', 'cancelled').order('created_at', { ascending: false });
   if (error) throw error;
   return (data as EventRow[]).map(toEvent);
 }
 
 export async function upsertEvent(userId: string, event: Omit<DemoEvent, 'id'> & { id?: string }): Promise<DemoEvent> {
-  const row = { organizer_id: userId, title: event.title, format: event.format, starts_at: labelToDate(event.when)?.toISOString() ?? null, seats: event.seats, status: event.status };
+  const row = { organizer_id: userId, title: event.title, format: event.format, starts_at: labelToDate(event.when)?.toISOString() ?? null, seats: event.seats, status: event.status, age_rating: event.ageRating ?? 'unknown', alcohol_policy: event.alcoholPolicy ?? 'unknown', venue_type: event.venueType ?? 'unknown' };
   const query = event.id ? client().from('events').update(row).eq('id', event.id) : client().from('events').insert(row);
-  const { data, error } = await query.select('id, title, format, starts_at, seats, status').single();
+  const { data, error } = await query.select(eventColumns).single();
   if (error) throw error;
   return toEvent(data as EventRow);
 }
@@ -72,21 +74,21 @@ const toPublicEvent = (row: PublicEventRow, userId: string): PublicEvent => ({
 
 /** Published events of other organizers, with the signed-in user's request status (RLS hides others' requests). */
 export async function fetchPublishedEvents(userId: string): Promise<PublicEvent[]> {
-  const { data, error } = await client().from('events').select('id, title, format, starts_at, seats, status, event_participants(status, user_id)')
+  const { data, error } = await client().from('events').select(`${eventColumns}, event_participants(status, user_id)`)
     .eq('status', 'published').neq('organizer_id', userId).order('starts_at', { ascending: true, nullsFirst: false }).limit(50);
   if (error) throw error;
   return (data as PublicEventRow[]).map((row) => toPublicEvent(row, userId));
 }
 
 export async function fetchMyParticipations(userId: string): Promise<PublicEvent[]> {
-  const { data, error } = await client().from('events').select('id, title, format, starts_at, seats, status, event_participants!inner(status, user_id)')
+  const { data, error } = await client().from('events').select(`${eventColumns}, event_participants!inner(status, user_id)`)
     .eq('event_participants.user_id', userId).order('starts_at', { ascending: true, nullsFirst: false });
   if (error) throw error;
   return (data as PublicEventRow[]).map((row) => toPublicEvent(row, userId));
 }
 
 export async function fetchEvent(eventId: string, userId: string): Promise<PublicEvent | null> {
-  const { data, error } = await client().from('events').select('id, title, format, starts_at, seats, status, event_participants(status, user_id)').eq('id', eventId).maybeSingle();
+  const { data, error } = await client().from('events').select(`${eventColumns}, event_participants(status, user_id)`).eq('id', eventId).maybeSingle();
   if (error) throw error;
   return data ? toPublicEvent(data as PublicEventRow, userId) : null;
 }

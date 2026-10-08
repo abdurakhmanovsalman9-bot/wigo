@@ -5,6 +5,7 @@ import { Note, Page, PrimaryButton, SecondaryButton, colors } from '../../compon
 import { useSession } from '../../context/session';
 import { useRemote } from '../../hooks/useRemote';
 import { fetchAddress, saveAddress } from '../../services/backend';
+import { EventSafety } from '../../domain/eventSafety';
 
 const formats = ['Спорт', 'Кофе и общение', 'Прогулка', 'Творчество'];
 const times = ['Сегодня · 19:30', 'Суббота · 19:30', 'Воскресенье · 11:00'];
@@ -18,13 +19,20 @@ export default function CreateEvent() {
   const [when, setWhen] = useState(existing?.when ?? times[1]);
   const [seats, setSeats] = useState(existing?.seats ?? 4);
   const [saving, setSaving] = useState(false);
+  const [ageRating, setAgeRating] = useState<EventSafety['ageRating']>(existing?.ageRating ?? 'unknown');
+  const [alcoholPolicy, setAlcoholPolicy] = useState<EventSafety['alcoholPolicy']>(existing?.alcoholPolicy ?? 'unknown');
+  const [venueType, setVenueType] = useState<EventSafety['venueType']>(existing?.venueType ?? 'unknown');
   const [address, setAddress] = useState<string | null>(null);
   const savedAddress = useRemote(userId && existing ? `address-${existing.id}` : null, () => fetchAddress(existing?.id as string));
   const addressValue = address ?? savedAddress.data ?? '';
   const save = async (status: 'draft' | 'published') => {
+    if (status === 'published' && (ageRating === 'unknown' || alcoholPolicy === 'unknown' || venueType === 'unknown')) {
+      Alert.alert('Уточни условия события', 'Выбери возраст, условия по алкоголю и тип площадки перед публикацией.'); return null;
+    }
+    if (status === 'published' && ageRating === '16+' && alcoholPolicy === 'present') { Alert.alert('Проверь возраст', 'События с алкоголем должны иметь отметку 18+.'); return null; }
     setSaving(true);
     try {
-      const eventId = await saveEvent({ id: existing?.id, title: title.trim(), format, when, seats, status });
+      const eventId = await saveEvent({ id: existing?.id, title: title.trim(), format, when, seats, status, ageRating, alcoholPolicy, venueType });
       if (userId && address !== null) await saveAddress(eventId, address.trim());
       return eventId;
     }
@@ -40,6 +48,10 @@ export default function CreateEvent() {
       <Text style={styles.seats}>{seats}</Text>
       <Pressable accessibilityLabel="Больше мест" onPress={() => setSeats(Math.min(30, seats + 1))} style={styles.step}><Text style={styles.stepText}>+</Text></Pressable>
     </View>
+    <Text style={styles.label}>Возраст участников</Text><View style={styles.options}>{(['16+', '18+'] as const).map((value) => <Pressable key={value} onPress={() => setAgeRating(value)} style={[styles.option, ageRating === value && styles.selected]}><Text style={styles.optionText}>{value}</Text></Pressable>)}</View>
+    <Text style={styles.label}>Условия по алкоголю</Text><View style={styles.options}>{([{ value: 'none', label: 'Алкоголя на событии не будет' }, { value: 'present', label: 'Алкоголь предусмотрен — только для взрослых' }] as const).map(({ value, label }) => <Pressable key={value} onPress={() => { setAlcoholPolicy(value); if (value === 'present') setAgeRating('18+'); }} style={[styles.option, alcoholPolicy === value && styles.selected]}><Text style={styles.optionText}>{label}</Text></Pressable>)}</View>
+    <Text style={styles.label}>Площадка</Text><View style={styles.options}>{([{ value: 'public', label: 'Публичная площадка' }, { value: 'private', label: 'Частное пространство' }] as const).map(({ value, label }) => <Pressable key={value} onPress={() => setVenueType(value)} style={[styles.option, venueType === value && styles.selected]}><Text style={styles.optionText}>{label}</Text></Pressable>)}</View>
+    <Note>В рекомендации 16–17 лет попадут только события 16+ без алкоголя на публичной площадке.</Note>
     {userId ? <><Text style={styles.label}>Адрес</Text><TextInput value={addressValue} onChangeText={setAddress} style={styles.input} placeholder="Увидят только подтверждённые участники" maxLength={200} /></> : null}
     <PrimaryButton label={userId ? 'Опубликовать' : 'Опубликовать в демо'} disabled={!title.trim() || saving} onPress={async () => { const id = await save('published'); if (id) router.replace({ pathname: '/(organizer)/event-detail', params: { id } }); }} />
     <SecondaryButton label="Сохранить черновик" onPress={async () => { if (title.trim() && !(await save('draft'))) return; router.replace('/(organizer)/events'); }} />

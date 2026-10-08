@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { Card, Note, Page, PrimaryButton, SecondaryButton } from '../../components/ui';
+import { isEventAllowed } from '../../domain/eventSafety';
 import { useSession } from '../../context/session';
 import { useRemote } from '../../hooks/useRemote';
 import { fetchAddress, fetchEvent, leaveEvent, requestToJoin } from '../../services/backend';
@@ -14,9 +15,9 @@ const statusText = {
 
 export default function UserEvent() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { userId } = useSession();
+  const { userId, dna } = useSession();
   const event = useRemote(userId && id ? `event-${id}` : null, () => fetchEvent(id, userId as string));
-  const confirmed = event.data?.myStatus === 'confirmed';
+  const confirmed = !!event.data && isEventAllowed(event.data, dna) && event.data.myStatus === 'confirmed';
   const address = useRemote(confirmed ? `address-${id}` : null, () => fetchAddress(id));
   const [busy, setBusy] = useState(false);
 
@@ -33,6 +34,7 @@ export default function UserEvent() {
     </Page>;
   }
 
+  if (!isEventAllowed(event.data, dna)) return <Page title="Этот план недоступен" subtitle="Возрастные условия или формат события не подходят твоим настройкам."><SecondaryButton label="К другим планам" onPress={() => router.replace('/(user)/explore')} /></Page>;
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
     try { await action(); event.reload(); } catch { Alert.alert('Не получилось', 'Проверьте интернет и попробуйте ещё раз.'); } finally { setBusy(false); }

@@ -1,5 +1,6 @@
+import type { EventSafety } from './eventSafety';
 export type DemoPlan = { id: string; title: string; details: string };
-export type DemoEvent = { id: string; title: string; format: string; when: string; seats: number; status: 'draft' | 'published' };
+export type DemoEvent = EventSafety & { id: string; title: string; format: string; when: string; seats: number; status: 'draft' | 'published' };
 export type ParticipantStatus = 'pending' | 'confirmed' | 'declined';
 export type Participant = { id: string; name: string; note: string; status: ParticipantStatus };
 
@@ -8,8 +9,8 @@ export const initialPlans: DemoPlan[] = [
 ];
 
 export const initialEvents: DemoEvent[] = [
-  { id: 'padel', title: 'Падел в субботу', format: 'Спорт', when: 'Суббота · 19:30 · Медеу', seats: 4, status: 'published' },
-  { id: 'walk', title: 'Прогулка у Медеу', format: 'Прогулка', when: 'Воскресенье · 11:00', seats: 8, status: 'draft' },
+  { id: 'padel', title: 'Падел в субботу', format: 'Спорт', when: 'Суббота · 19:30 · Медеу', seats: 4, status: 'published', ageRating: '16+', alcoholPolicy: 'none', venueType: 'public' },
+  { id: 'walk', title: 'Прогулка у Медеу', format: 'Прогулка', when: 'Воскресенье · 11:00', seats: 8, status: 'draft', ageRating: '16+', alcoholPolicy: 'none', venueType: 'public' },
 ];
 
 export const initialParticipants: Participant[] = [

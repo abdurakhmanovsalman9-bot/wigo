@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { Note, Page, PrimaryButton, SecondaryButton, colors } from '../../components/ui';
+import { isEventAllowed } from '../../domain/eventSafety';
 import { useSession } from '../../context/session';
 import { useRemote } from '../../hooks/useRemote';
 import { ChatMessage, fetchEvent, fetchMessages, sendMessage, subscribeToMessages } from '../../services/backend';
@@ -9,13 +10,14 @@ import { ChatMessage, fetchEvent, fetchMessages, sendMessage, subscribeToMessage
 // Real event chat. RLS lets only the organizer and confirmed participants read or write it.
 export default function EventChat() {
   const { eventId } = useLocalSearchParams<{ eventId: string }>();
-  const { userId, role } = useSession();
+  const { userId, role, dna } = useSession();
   const event = useRemote(userId && eventId ? `event-${eventId}` : null, () => fetchEvent(eventId, userId as string));
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState(''); const [sending, setSending] = useState(false); const [error, setError] = useState<string | null>(null);
 
+  const allowed = !!event.data && isEventAllowed(event.data, dna);
   useEffect(() => {
-    if (!userId || !eventId) return;
+    if (!userId || !eventId || !allowed) return;
     let active = true;
     const load = () => fetchMessages(eventId, userId)
       .then((items) => { if (active) { setMessages(items); setError(null); } })
@@ -23,7 +25,7 @@ export default function EventChat() {
     load();
     const unsubscribe = subscribeToMessages(eventId, load);
     return () => { active = false; unsubscribe(); };
-  }, [eventId, userId]);
+  }, [eventId, userId, allowed]);
 
   if (!userId) {
     return <Page title="Чат события" subtitle="Чат доступен после входа в аккаунт.">
@@ -32,6 +34,7 @@ export default function EventChat() {
     </Page>;
   }
 
+  if (!allowed) return <Page title="Чат события" subtitle={event.loading ? 'Проверяем условия события…' : 'Событие недоступно для твоего возраста или выбранных условий.'}><SecondaryButton label="Назад" onPress={() => router.back()} /></Page>;
   const send = async () => {
     const body = text.trim();
     if (!body) return;

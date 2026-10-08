@@ -10,7 +10,7 @@ export default function Profile() {
   const saveName = () => { if (!userId || name === null) return; updateDisplayName(userId, name.trim()).then(() => setName(null)).then(savedName.reload).catch(() => Alert.alert('Не удалось сохранить имя', 'Проверьте интернет и попробуйте ещё раз.')); };
   return <Page title="Ваш профиль" subtitle="Настройки встреч и безопасности.">
     {userId ? <><Text style={styles.label}>Имя для других участников</Text><TextInput value={nameValue} onChangeText={setName} onBlur={saveName} onSubmitEditing={saveName} placeholder="Как вас называть" maxLength={60} style={styles.input}/></> : null}
-    <Card title="Social DNA" text={socialDnaSummary(dna)} action="Изменить" onPress={() => router.push('/onboarding/quiz')}/>
+    <Card title="Social DNA" text={socialDnaSummary(dna)} action={dna.version === 2 ? 'Посмотреть' : 'Пройти тест'} onPress={() => router.push(dna.version === 2 ? '/onboarding/dna-result' : '/onboarding/social-dna')}/>
     <Card title="Приватность" text="Whisper, геолокация и видимость профиля" action="Открыть" onPress={() => router.push('/(user)/privacy')}/>
     <PrimaryButton label={userId ? 'Режим организатора' : 'Перейти в демо организатора'} onPress={() => { setRole('organizer'); router.replace('/(organizer)/home'); }}/>
     {userId
